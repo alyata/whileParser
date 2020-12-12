@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 051b589ec87f12e22d736abcfda35eade0e988a9792ca3aefcd0e83797f95c6d
+-- hash: ea6e44b04b3567a6788f541067830998e0bcb638b32d54d8074bd8a141c0a742
 
 name:           whileParser
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 
 library
   exposed-modules:
+      Expr
       Lib
   other-modules:
       Paths_whileParser
