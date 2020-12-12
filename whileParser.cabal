@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ea6e44b04b3567a6788f541067830998e0bcb638b32d54d8074bd8a141c0a742
+-- hash: 0045414a8b587416f19052dc096b32bbf6757a31a0740b399b417192eda17406
 
 name:           whileParser
 version:        0.1.0.0
@@ -29,12 +29,14 @@ library
   exposed-modules:
       Expr
       Lib
+      Tokenizer
   other-modules:
       Paths_whileParser
   hs-source-dirs:
       src
   build-depends:
       base >=4.7 && <5
+    , parsec
   default-language: Haskell2010
 
 executable whileParser-exe
@@ -46,6 +48,7 @@ executable whileParser-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , parsec
     , whileParser
   default-language: Haskell2010
 
@@ -58,6 +61,8 @@ test-suite whileParser-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      HUnit
+    , base >=4.7 && <5
+    , parsec
     , whileParser
   default-language: Haskell2010
