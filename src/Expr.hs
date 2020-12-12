@@ -52,7 +52,7 @@ parserExprInductive :: Parsec String st Expr
 parserExprInductive = do
   tokenizerMatch (== "(")
   e1 <- parserExpr
-  eOp <- try parserExprOp
+  eOp <- parserExprOp
   e2 <- parserExpr
   tokenizerMatch (== ")")
   return (eOp e1 e2)

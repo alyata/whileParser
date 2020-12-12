@@ -1,8 +1,8 @@
 module TokenizerTest where
 
 import Tokenizer (whitespaceParser, tokenParser)
-
 import ParserTest (testParser)
+
 import Test.HUnit
 
 tests :: Test

@@ -1,7 +1,7 @@
 module Main where
 
-import qualified TokenizerTest
-import qualified ExprTest
+import qualified TokenizerTest (tests)
+import qualified ExprTest (tests)
 
 import Test.HUnit
 

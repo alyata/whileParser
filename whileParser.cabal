@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e7e5f83e38ff816969f64836f2194bef3b5c2f314356939ce86638ed9a19e70f
+-- hash: f46362a0a84a873e25f695bdc73ca31725da8c2e3ed7a1a1a4c9946f11d46729
 
 name:           whileParser
 version:        0.1.0.0
@@ -26,6 +26,7 @@ source-repository head
 
 library
   exposed-modules:
+      Boolean
       Expr
       Lib
       Tokenizer

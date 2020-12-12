@@ -2,7 +2,8 @@ module Lib
     ( someFunc
     ) where
 
-import Expr (Expr(..), parseExpr)
+import Expr (parseExpr)
+import Boolean (parseBoolean)
 
 someFunc :: IO ()
-someFunc = putStrLn $ show (parseExpr "(1*(3+2))")
+someFunc = putStrLn $ show (parseBoolean "((1 < (1 + 10)) & (~ true))")

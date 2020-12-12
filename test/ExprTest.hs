@@ -1,8 +1,8 @@
 module ExprTest where
 
 import Expr (parserExpr, x, y, z)
-
 import ParserTest (testParser)
+
 import Test.HUnit
 
 tests :: Test
