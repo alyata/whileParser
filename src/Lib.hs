@@ -2,7 +2,7 @@ module Lib
     ( someFunc
     ) where
 
-import Expr (Expr(..))
+import Expr (Expr(..), parseExpr)
 
 someFunc :: IO ()
-someFunc = putStrLn $ show (Var "variable")
+someFunc = putStrLn $ show (parseExpr "(1*(3+2))")

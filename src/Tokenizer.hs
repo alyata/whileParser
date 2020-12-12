@@ -19,3 +19,10 @@ tokenParser = (do ch <- oneOf specialChars; return [ch])
 
 tokenizer :: Parsec String st String
 tokenizer = whitespaceParser *> tokenParser
+
+tokenizerMatch :: (String -> Bool) -> Parsec String st String
+tokenizerMatch matcher = do
+  t <- tokenizer
+  if matcher t
+     then return t
+     else unexpected "Token did not match."
