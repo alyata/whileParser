@@ -1,10 +1,10 @@
 name:                whileParser
 version:             0.1.0.0
-github:              "githubuser/whileParser"
+github:              "alyata/whileParser"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2020 Author name here"
+author:              "alyata"
+maintainer:          ""
+copyright:           "2020 alyata"
 
 extra-source-files:
 - README.md
@@ -14,10 +14,8 @@ extra-source-files:
 # synopsis:            Short description of your package
 # category:            Web
 
-# To avoid duplicated efforts in documentation and dealing with the
-# complications of embedding Haddock markup inside cabal files, it is
-# common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/whileParser#readme>
+description:         
+  Please see the README on GitHub at <https://github.com/alyata/whileParser#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -27,7 +25,7 @@ library:
   source-dirs: src
 
 executables:
-  whileParser-exe:
+  whileParser:
     main:                Main.hs
     source-dirs:         app
     ghc-options:

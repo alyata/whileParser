@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0045414a8b587416f19052dc096b32bbf6757a31a0740b399b417192eda17406
+-- hash: d6b78a9212fb66de9a51f626799a9a86ddd0131bf2c023bf3b30dd4b73e57201
 
 name:           whileParser
 version:        0.1.0.0
@@ -39,7 +39,7 @@ library
     , parsec
   default-language: Haskell2010
 
-executable whileParser-exe
+executable whileParser
   main-is: Main.hs
   other-modules:
       Paths_whileParser
