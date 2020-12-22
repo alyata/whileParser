@@ -6,7 +6,7 @@ whitespaceChars :: [Char]
 whitespaceChars = " \n"
 
 specialChars :: [Char]
-specialChars = "(+*)"
+specialChars = "+*&|<>=~"
 
 whitespaceParser :: Parsec String st String
 whitespaceParser = many $ oneOf whitespaceChars
@@ -17,12 +17,15 @@ tokenParser :: Parsec String st String
 tokenParser = (do ch <- oneOf specialChars; return [ch])
              <|> (many1 $ noneOf (whitespaceChars ++ specialChars))
 
+lexeme :: Parsec String st a -> Parsec String st a
+lexeme p = try p <* whitespaceParser
+
 tokenizer :: Parsec String st String
-tokenizer = whitespaceParser *> tokenParser
+tokenizer = lexeme tokenParser
 
 tokenizerMatch :: (String -> Bool) -> Parsec String st String
-tokenizerMatch matcher = do
+tokenizerMatch matcher = try $ do
   t <- tokenizer
   if matcher t
      then return t
-     else unexpected "Token did not match."
+     else fail "Token did not match."

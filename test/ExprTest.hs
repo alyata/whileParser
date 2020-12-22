@@ -1,13 +1,13 @@
 module ExprTest where
 
-import Expr (parserExpr, x, y, z)
+import Expr (expr, x, y, z)
 import ParserTest (testParser)
 
 import Test.HUnit
 
 tests :: Test
 tests 
-  = TestList $ fmap (testParser parserExpr) 
+  = TestList $ fmap (testParser expr) 
       [("(x + 1)", x + 1)
       ,("(x+1)", x + 1)
       ,("((   100 * x   ) +1)", (100 * x) + 1)

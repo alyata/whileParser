@@ -1,7 +1,7 @@
 module Boolean where
 
 import Tokenizer (tokenizer, tokenizerMatch)
-import Expr (Expr, parserExpr)
+import Expr (Expr, expr)
 
 import Text.Parsec
 
@@ -30,9 +30,9 @@ parserBooleanExprOp = do
 
 parserBooleanInductiveExprOp :: Parsec String st Boolean
 parserBooleanInductiveExprOp = do
-  e1 <- parserExpr
+  e1 <- expr 
   bOp <- parserBooleanExprOp
-  e2 <- parserExpr
+  e2 <- expr 
   return (bOp e1 e2)
 
 parserBooleanBinOp :: Parsec String st (Boolean -> Boolean -> Boolean)

@@ -1,10 +1,13 @@
 module Expr where
 
-import Tokenizer (tokenizer, tokenizerMatch)
+import Tokenizer (tokenizer, whitespaceParser, specialChars, lexeme)
 
 import Text.Parsec
-import Text.Read
+import Text.Read (read)
 import Numeric.Natural
+import Data.Word
+import Data.Function ((&))
+import Control.Applicative (liftA2)
 
 data Expr 
   = Var String 
@@ -33,33 +36,79 @@ x = Var "x"
 y = Var "y"
 z = Var "z"
 
-parserExprBase :: Parsec String st Expr
-parserExprBase = do
-  t <- tokenizer
-  case readMaybe t of
-    Just n  -> return (Const n)
-    Nothing -> return (Var t)
+-- |The 'variable' parser parses tokens consisting purely of alphanumeric
+-- |letters to be a variable, except the first character has to be alphabetical.
+variable :: Parsec String st String 
+variable = lexeme (liftA2 (:) letter (many alphaNum)) <?> "variable"
 
-parserExprOp :: Parsec String st (Expr -> Expr -> Expr)
-parserExprOp = do
-  t <- tokenizer
-  case t of
-    "+" -> return (:+:)
-    "*" -> return (:*:)
-    _   -> unexpected $ "Unknown operator \"" ++ t ++ "\"."
+-- |The 'number' parser parses tokens consisting purely of digits 0-9 to be a 
+-- |natural number constant.
+number :: Parsec String st Natural
+number = read <$> lexeme (many1 digit) <?> "number"
 
-parserExprInductive :: Parsec String st Expr
-parserExprInductive = do
-  tokenizerMatch (== "(")
-  e1 <- parserExpr
-  eOp <- parserExprOp
-  e2 <- parserExpr
-  tokenizerMatch (== ")")
-  return (eOp e1 e2)
+-- |The 'operator' function takes a string representing an operator to match on. 
+-- |However, it does not parse anything out of it.
+operator :: String -> Parsec String st ()
+operator op = lexeme (string op) *> return ()
 
-parserExpr :: Parsec String st Expr
-parserExpr = try parserExprInductive <|> parserExprBase
+-- |The 'atom' parser constructs parses an atomic expression, which may be a
+-- |variable, constant or a bracketed expression. Bracketed expressions are
+-- |atomic in the sense that they must be fully evaluated before their 
+-- |surroundings.
+atom :: Parsec String st Expr
+atom = Var <$> variable 
+   <|> Const <$> number 
+   <|> between (lexeme (char '(') <?> "open parenthesis") 
+               (lexeme (char ')') <?> "closing parenthesis") 
+               expr
 
--- error if parsing stops before the end of the input
+-- |The 'exprOp' parser parses either a "+" or "*" as an expression operator.
+exprOp :: Parsec String st (Expr -> Expr -> Expr)
+exprOp = (:+:) <$ operator "+" <|> (:*:) <$ operator "*" 
+
+-- flipped applicative operator
+(<**>) :: Applicative f => f a -> f (a -> b) -> f b
+(<**>) = flip (<*>)
+
+-- |The 'precedence1' parser parses expressions at precedence level 1, which
+-- |consists of atomic expressions separated by a "*".
+precedence1 :: Parsec String st Expr
+precedence1 = chainl1 atom ((:*:) <$ operator "*")
+
+-- |The 'precedence0' parser parses expressions at the base precedence level 0,
+-- |which consists of precedence1 expressions separated by a "+". This means
+-- |that addition has lower precedence than multiplication in parsing.
+precedence0 :: Parsec String st Expr
+precedence0 = chainl1 precedence1 ((:+:) <$ operator "+")
+
+-- |Parsing at the lowest precedence level is the same as parsing all
+-- |expressions.
+expr :: Parsec String st Expr
+expr = precedence0
+
+{- Precedence can be generalized as follows:
+
+-- choice :: [Parsec t s a] -> Parsec t s a
+-- choice = foldr (<|>) empty
+
+-- Each precedence level is inhabited by a set of operations. They can be either
+-- left or right associative.
+data Op st a = LeftOp [Parsec String st (a -> a -> a)]
+             | RightOp [Parsec String st (a -> a -> a)]
+
+-- Given a list of precedence levels, and an atomic parser, generate the
+-- complete parser
+precedence :: [Op st a] -> Parsec String st a -> Parsec String st a
+precedence ops atom = foldl convert atom ops
+  where
+    convert :: Parsec String st a -> Op st a -> Parsec String st a
+    convert atom (LeftOp ops) = chainl1 atom (choice ops)
+    convert atom (RightOp ops) = chainr1 atom (choice ops)
+
+-- Then the same expr can be expressed as a call to the 'precedence' function
+expr = precedence [ LeftOp [(:*:) <$ operator "*"]
+                  , LeftOp [(:+:) <$ operator "+"]] atom
+-}
+
 parseExpr :: String -> Either ParseError Expr
-parseExpr s = parse (parserExpr <* eof) "" s
+parseExpr s = parse (whitespaceParser *> expr <* eof) "" s
