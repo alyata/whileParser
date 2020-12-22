@@ -1,24 +1,25 @@
 module Expr where
 
-import Common (lexeme, lexemeMatch)
+import           Common              (lexeme, lexemeMatch)
 
-import Text.Parsec (Parsec, ParseError, parse, eof, spaces, chainl1, between, 
-                    many1, many, alphaNum, letter, digit, (<|>), (<?>))
-import Text.Read (read)
-import Numeric.Natural
-import Data.Function ((&))
-import Control.Applicative (liftA2)
+import           Control.Applicative (liftA2)
+import           Data.Function       ((&))
+import           Numeric.Natural
+import           Text.Parsec         (ParseError, Parsec, alphaNum, between,
+                                      chainl1, digit, eof, letter, many, many1,
+                                      parse, spaces, (<?>), (<|>))
+import           Text.Read           (read)
 
-data Expr 
-  = Var String 
-  | Const Natural 
-  | Expr :*: Expr 
+data Expr
+  = Var String
+  | Const Natural
+  | Expr :*: Expr
   | Expr :+: Expr
   deriving Eq
 
 instance Show Expr where
-  show (Var s) = s
-  show (Const n) = show n
+  show (Var s)     = s
+  show (Const n)   = show n
   show (e1 :*: e2) = "(" ++ show e1 ++ " * " ++ show e2 ++ ")"
   show (e1 :+: e2) = "(" ++ show e1 ++ " + " ++ show e2 ++ ")"
 
@@ -38,29 +39,29 @@ z = Var "z"
 
 -- |The 'variable' parser parses tokens consisting purely of alphanumeric
 -- |letters to be a variable, except the first character has to be alphabetical.
-variable :: Parsec String st String 
+variable :: Parsec String st String
 variable = lexeme (liftA2 (:) letter (many alphaNum)) <?> "variable"
 
--- |The 'number' parser parses tokens consisting purely of digits 0-9 to be a 
+-- |The 'number' parser parses tokens consisting purely of digits 0-9 to be a
 -- |natural number constant.
 number :: Parsec String st Natural
 number = read <$> lexeme (many1 digit) <?> "number"
 
 -- |The 'atom' parser constructs parses an atomic expression, which may be a
 -- |variable, constant or a bracketed expression. Bracketed expressions are
--- |atomic in the sense that they must be fully evaluated before their 
+-- |atomic in the sense that they must be fully evaluated before their
 -- |surroundings.
 atom :: Parsec String st Expr
-atom = Var <$> variable 
-   <|> Const <$> number 
-   <|> between (lexemeMatch "(" <?> "open parenthesis") 
-               (lexemeMatch ")" <?> "closing parenthesis") 
+atom = Var <$> variable
+   <|> Const <$> number
+   <|> between (lexemeMatch "(" <?> "open parenthesis")
+               (lexemeMatch ")" <?> "closing parenthesis")
                expr
 
 -- |The 'exprOp' parser parses either a "+" or "*" as an expression operator.
 -- |Not currently used as each operator has different precedence.
 exprOp :: Parsec String st (Expr -> Expr -> Expr)
-exprOp = (:+:) <$ lexemeMatch "+" <|> (:*:) <$ lexemeMatch "*" 
+exprOp = (:+:) <$ lexemeMatch "+" <|> (:*:) <$ lexemeMatch "*"
 
 -- |The 'precedence1' parser parses expressions at precedence level 1, which
 -- |consists of atomic expressions separated by a "*".

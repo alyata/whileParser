@@ -1,13 +1,11 @@
 module Main where
 
-import qualified TokenizerTest (tests)
-import qualified ExprTest (tests)
+import qualified ExprTest   (tests)
 
-import Test.HUnit
+import           Test.HUnit
 
 main :: IO ()
-main = do 
-  runTestTT $ TestList 
-    [TokenizerTest.tests
-    ,ExprTest.tests]
+main = do
+  runTestTT $ TestList
+    [ExprTest.tests]
   return ()

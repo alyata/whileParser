@@ -1,6 +1,6 @@
 module Common where
 
-import Text.Parsec (Parsec, try, spaces, string)
+import           Text.Parsec (Parsec, spaces, string, try)
 
 lexeme :: Parsec String st a -> Parsec String st a
 lexeme p = try p <* spaces

@@ -1,14 +1,14 @@
 module Boolean where
 
-import Common (lexemeMatch)
+import           Common              (lexemeMatch)
 
-import Text.Parsec (Parsec, ParseError, parse, eof, spaces, chainl1, between, 
-                    (<|>), (<?>))
-import Expr (Expr, expr)
-import Control.Applicative ((<**>))
+import           Control.Applicative ((<**>))
+import           Expr                (Expr, expr)
+import           Text.Parsec         (ParseError, Parsec, between, chainl1, eof,
+                                      parse, spaces, (<?>), (<|>))
 
-data Boolean = 
-  T | F | 
+data Boolean =
+  T | F |
   Expr :=: Expr | Expr :<: Expr | Expr :>: Expr |
   Boolean :&: Boolean | Boolean :|: Boolean | Not Boolean
   deriving Show
@@ -31,7 +31,7 @@ neg = Not <$ lexemeMatch "~"
 atom :: Parsec String st Boolean
 atom = truthVal
    <|> expr <**> exprBinOp <*> expr
-   <|> between (lexemeMatch "(" <?> "open parenthesis") 
+   <|> between (lexemeMatch "(" <?> "open parenthesis")
                (lexemeMatch ")" <?> "closing parenthesis")
                boolean
 
