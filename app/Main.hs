@@ -1,6 +1,8 @@
 module Main where
 
-import Lib
+import Expr (parseExpr)
+import Boolean (parseBoolean)
 
 main :: IO ()
-main = someFunc
+main = putStrLn $ show (parseBoolean "~true&1>1|false")
+

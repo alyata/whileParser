@@ -1,9 +1,11 @@
 module Boolean where
 
-import Tokenizer (tokenizer, tokenizerMatch)
-import Expr (Expr, expr)
+import Common (lexemeMatch)
 
-import Text.Parsec
+import Text.Parsec (Parsec, ParseError, parse, eof, spaces, chainl1, between, 
+                    (<|>), (<?>))
+import Expr (Expr, expr)
+import Control.Applicative ((<**>))
 
 data Boolean = 
   T | F | 
@@ -11,70 +13,39 @@ data Boolean =
   Boolean :&: Boolean | Boolean :|: Boolean | Not Boolean
   deriving Show
 
-parserBooleanBase :: Parsec String st Boolean
-parserBooleanBase = do
-  t <- tokenizer
-  case t of
-    "true" -> return T
-    "false" -> return F
-    _ -> unexpected $ "Unknown truth value."
+truthVal :: Parsec String st Boolean
+truthVal = T <$ lexemeMatch "true" <|> F <$ lexemeMatch "false"
 
-parserBooleanExprOp :: Parsec String st (Expr -> Expr -> Boolean)
-parserBooleanExprOp = do
-  t <- tokenizer
-  case t of
-    "=" -> return (:=:)
-    "<" -> return (:<:)
-    ">" -> return (:>:)
-    _ -> unexpected $ "Unknown boolean operator"
+boolBinOp :: Parsec String st (Boolean -> Boolean -> Boolean)
+boolBinOp = (:&:) <$ lexemeMatch "&"
+        <|> (:|:) <$ lexemeMatch "|"
 
-parserBooleanInductiveExprOp :: Parsec String st Boolean
-parserBooleanInductiveExprOp = do
-  e1 <- expr 
-  bOp <- parserBooleanExprOp
-  e2 <- expr 
-  return (bOp e1 e2)
+exprBinOp :: Parsec String st (Expr -> Expr -> Boolean)
+exprBinOp = (:=:) <$ lexemeMatch "="
+        <|> (:<:) <$ lexemeMatch "<"
+        <|> (:>:) <$ lexemeMatch ">"
 
-parserBooleanBinOp :: Parsec String st (Boolean -> Boolean -> Boolean)
-parserBooleanBinOp = do
-  t <- tokenizer
-  case t of
-    "&" -> return (:&:)
-    "|" -> return (:|:)
-    _ -> unexpected $ "Unknown boolean operator"
+neg :: Parsec String st (Boolean -> Boolean)
+neg = Not <$ lexemeMatch "~"
 
-parserBooleanInductiveBinOp :: Parsec String st Boolean
-parserBooleanInductiveBinOp = do
-  b1 <- parserBoolean
-  bOp <- parserBooleanBinOp
-  b2 <- parserBoolean
-  return (bOp b1 b2)
+atom :: Parsec String st Boolean
+atom = truthVal
+   <|> expr <**> exprBinOp <*> expr
+   <|> between (lexemeMatch "(" <?> "open parenthesis") 
+               (lexemeMatch ")" <?> "closing parenthesis")
+               boolean
 
-parserBooleanUnOp :: Parsec String st (Boolean -> Boolean)
-parserBooleanUnOp = do
-  t <- tokenizer
-  case t of
-    "~" -> return Not
-    _ -> unexpected $ "Unknown boolean operator"
+literal :: Parsec String st Boolean
+literal = atom <|> neg <*> atom
 
-parserBooleanInductiveUnOp :: Parsec String st Boolean
-parserBooleanInductiveUnOp = do
-  bOp <- parserBooleanUnOp
-  b <- parserBoolean
-  return (bOp b)
+precedence1 :: Parsec String st Boolean
+precedence1 = chainl1 literal ((:&:) <$ lexemeMatch "&")
 
-parserBooleanInductive :: Parsec String st Boolean
-parserBooleanInductive = do
-  tokenizerMatch (== "(")
-  *> (try parserBooleanInductiveExprOp 
-  <|> try parserBooleanInductiveBinOp
-  <|> parserBooleanInductiveUnOp)
-  <* tokenizerMatch (== ")")
+precedence0 :: Parsec String st Boolean
+precedence0 = chainl1 precedence1 ((:|:) <$ lexemeMatch "|")
 
-parserBoolean :: Parsec String st Boolean
-parserBoolean = try parserBooleanInductive <|> try parserBooleanBase 
-                <?> "This is not a valid boolean expression"
+boolean :: Parsec String st Boolean
+boolean = precedence0
 
--- error if parsing stops before the end of the input
 parseBoolean :: String -> Either ParseError Boolean
-parseBoolean s = parse (parserBoolean <* eof) "" s
+parseBoolean = parse (spaces *> boolean <* eof) ""

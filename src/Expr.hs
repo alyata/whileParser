@@ -1,11 +1,11 @@
 module Expr where
 
-import Tokenizer (tokenizer, whitespaceParser, specialChars, lexeme)
+import Common (lexeme, lexemeMatch)
 
-import Text.Parsec
+import Text.Parsec (Parsec, ParseError, parse, eof, spaces, chainl1, between, 
+                    many1, many, alphaNum, letter, digit, (<|>), (<?>))
 import Text.Read (read)
 import Numeric.Natural
-import Data.Word
 import Data.Function ((&))
 import Control.Applicative (liftA2)
 
@@ -46,11 +46,6 @@ variable = lexeme (liftA2 (:) letter (many alphaNum)) <?> "variable"
 number :: Parsec String st Natural
 number = read <$> lexeme (many1 digit) <?> "number"
 
--- |The 'operator' function takes a string representing an operator to match on. 
--- |However, it does not parse anything out of it.
-operator :: String -> Parsec String st ()
-operator op = lexeme (string op) *> return ()
-
 -- |The 'atom' parser constructs parses an atomic expression, which may be a
 -- |variable, constant or a bracketed expression. Bracketed expressions are
 -- |atomic in the sense that they must be fully evaluated before their 
@@ -58,28 +53,25 @@ operator op = lexeme (string op) *> return ()
 atom :: Parsec String st Expr
 atom = Var <$> variable 
    <|> Const <$> number 
-   <|> between (lexeme (char '(') <?> "open parenthesis") 
-               (lexeme (char ')') <?> "closing parenthesis") 
+   <|> between (lexemeMatch "(" <?> "open parenthesis") 
+               (lexemeMatch ")" <?> "closing parenthesis") 
                expr
 
 -- |The 'exprOp' parser parses either a "+" or "*" as an expression operator.
+-- |Not currently used as each operator has different precedence.
 exprOp :: Parsec String st (Expr -> Expr -> Expr)
-exprOp = (:+:) <$ operator "+" <|> (:*:) <$ operator "*" 
-
--- flipped applicative operator
-(<**>) :: Applicative f => f a -> f (a -> b) -> f b
-(<**>) = flip (<*>)
+exprOp = (:+:) <$ lexemeMatch "+" <|> (:*:) <$ lexemeMatch "*" 
 
 -- |The 'precedence1' parser parses expressions at precedence level 1, which
 -- |consists of atomic expressions separated by a "*".
 precedence1 :: Parsec String st Expr
-precedence1 = chainl1 atom ((:*:) <$ operator "*")
+precedence1 = chainl1 atom ((:*:) <$ lexemeMatch "*")
 
 -- |The 'precedence0' parser parses expressions at the base precedence level 0,
 -- |which consists of precedence1 expressions separated by a "+". This means
 -- |that addition has lower precedence than multiplication in parsing.
 precedence0 :: Parsec String st Expr
-precedence0 = chainl1 precedence1 ((:+:) <$ operator "+")
+precedence0 = chainl1 precedence1 ((:+:) <$ lexemeMatch "+")
 
 -- |Parsing at the lowest precedence level is the same as parsing all
 -- |expressions.
@@ -106,9 +98,9 @@ precedence ops atom = foldl convert atom ops
     convert atom (RightOp ops) = chainr1 atom (choice ops)
 
 -- Then the same expr can be expressed as a call to the 'precedence' function
-expr = precedence [ LeftOp [(:*:) <$ operator "*"]
-                  , LeftOp [(:+:) <$ operator "+"]] atom
+expr = precedence [ LeftOp [(:*:) <$ lexemeMatch "*"]
+                  , LeftOp [(:+:) <$ lexemeMatch "+"]] atom
 -}
 
 parseExpr :: String -> Either ParseError Expr
-parseExpr s = parse (whitespaceParser *> expr <* eof) "" s
+parseExpr s = parse (spaces *> expr <* eof) "" s
