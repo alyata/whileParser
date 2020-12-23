@@ -15,7 +15,7 @@ data Expr
   | Const Natural
   | Expr :*: Expr
   | Expr :+: Expr
-  deriving Eq
+    deriving Eq
 
 instance Show Expr where
   show (Var s)     = s
@@ -77,7 +77,7 @@ precedence0 = chainl1 precedence1 ((:+:) <$ lexemeMatch "+")
 -- |Parsing at the lowest precedence level is the same as parsing all
 -- |expressions.
 expr :: Parsec String st Expr
-expr = precedence0
+expr = precedence0 <?> "expression"
 
 {- Precedence can be generalized as follows:
 

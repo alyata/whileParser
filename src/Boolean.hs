@@ -1,17 +1,21 @@
 module Boolean where
 
 import           Common              (lexemeMatch)
+import           Expr                (Expr, expr)
 
 import           Control.Applicative ((<**>))
-import           Expr                (Expr, expr)
 import           Text.Parsec         (ParseError, Parsec, between, chainl1, eof,
                                       parse, spaces, (<?>), (<|>))
 
-data Boolean =
-  T | F |
-  Expr :=: Expr | Expr :<: Expr | Expr :>: Expr |
-  Boolean :&: Boolean | Boolean :|: Boolean | Not Boolean
-  deriving Show
+data Boolean
+  = T | F
+  | Expr :=: Expr
+  | Expr :<: Expr
+  | Expr :>: Expr
+  | Boolean :&: Boolean
+  | Boolean :|: Boolean
+  | Not Boolean
+    deriving Show
 
 truthVal :: Parsec String st Boolean
 truthVal = T <$ lexemeMatch "true" <|> F <$ lexemeMatch "false"
@@ -45,7 +49,7 @@ precedence0 :: Parsec String st Boolean
 precedence0 = chainl1 precedence1 ((:|:) <$ lexemeMatch "|")
 
 boolean :: Parsec String st Boolean
-boolean = precedence0
+boolean = precedence0 <?> "boolean"
 
 parseBoolean :: String -> Either ParseError Boolean
 parseBoolean = parse (spaces *> boolean <* eof) ""

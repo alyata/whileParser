@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3d72f361234b7333242c7701e8d764a770d42fa89fcf35e2445c702e3815b624
+-- hash: 1ac4e957f7f5a099502679c78bb2d6024f98b4263017c0b5d259cebae32b56ef
 
 name:           whileParser
 version:        0.1.0.0
@@ -27,6 +27,7 @@ source-repository head
 library
   exposed-modules:
       Boolean
+      Command
       Common
       Expr
   other-modules:
