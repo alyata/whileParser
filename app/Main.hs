@@ -2,16 +2,28 @@ module Main where
 
 import Expr (Expr(..), x)
 import Boolean (Boolean(..))
-import Command (Command(..))
+import Command (Command(..), parseCommand)
 import Latex (evalExpr, evalBoolean, evalCommand)
 import Data.Map
 import Text.LaTeX
-import Text.LaTeX.Base.Render
+import Text.LaTeX.Base.Render (renderFile)
+import Text.LaTeX.Base.Parser (parseLaTeXFile)
+import System.Environment (getArgs)
+import System.Exit (ExitCode(ExitFailure), exitWith)
+import Data.Either (fromRight)
 
 main :: IO ()
 main = do
-  let st = fromList [("x", 2)]
-      --proof1 = fst $ evalBoolean (T :|: (Not (x :>: 10))) st
-      --proof2 = fst $ evalExpr ((x + 10) * 34 + (x * x * x * x)) st
-      proof3 = fst $ evalCommand (While (x :<: 20) ("x" ::=: (x + 1))) st
-  renderFile "out.tex" $ proof3
+  parseResult <- parseLaTeXFile "druleTemplate.tex"
+  template <- eitherErrReturn "Failed to parse template" parseResult
+  args <- getArgs
+  progStr <- readFile $ args !! 0
+  let p = parseCommand progStr
+  prog <- eitherErrReturn (show p) (parseCommand progStr)
+  let (proof, _) = evalCommand prog mempty
+  renderFile "out.tex" $ template <> document (math proof)
+  putStrLn "success!"
+
+eitherErrReturn :: String -> Either a b -> IO b
+eitherErrReturn msg 
+  = either (\err -> putStrLn msg >> exitWith (ExitFailure 1)) return
