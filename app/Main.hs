@@ -1,8 +1,13 @@
 module Main where
 
-import Expr (parseExpr)
-import Boolean (parseBoolean)
+import Expr (Expr(..), x)
+import Boolean (Boolean(..))
+import Latex (evalExpr, evalBoolean)
+import Data.Map
+import Text.LaTeX
+import Text.LaTeX.Base.Render
 
 main :: IO ()
-main = putStrLn $ show (parseBoolean "~true&1>1|false")
-
+main = do
+  let proof = fst $ evalBoolean (T :|: (Not (x :>: 10))) (fromList [("x", 2)])
+  renderFile "out.tex" proof
