@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1ac4e957f7f5a099502679c78bb2d6024f98b4263017c0b5d259cebae32b56ef
+-- hash: 49d82e632aff4e25a039fef88ab3b2bb6f1b735cad38f73dec7221cd29aa8d9c
 
 name:           whileParser
 version:        0.1.0.0
@@ -30,12 +30,15 @@ library
       Command
       Common
       Expr
+      Latex
   other-modules:
       Paths_whileParser
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      HaTeX
+    , base >=4.7 && <5
+    , containers
     , parsec
   default-language: Haskell2010
 
@@ -47,7 +50,9 @@ executable whileParser
       app
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      HaTeX
+    , base >=4.7 && <5
+    , containers
     , parsec
     , whileParser
   default-language: Haskell2010
@@ -64,7 +69,9 @@ test-suite whileParser-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HUnit
+    , HaTeX
     , base >=4.7 && <5
+    , containers
     , parsec
     , whileParser
   default-language: Haskell2010
