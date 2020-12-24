@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 module Latex where
 
@@ -11,105 +13,133 @@ import Data.Map hiding (map)
 import Data.Maybe (fromJust)
 import Prelude hiding (lookup)
 import Text.LaTeX.Base.Syntax (TeXArg(FixArg), LaTeX(TeXComm, TeXCommS))
+import Text.LaTeX.Base.Class (LaTeXC, fromLaTeX, comm0, comm1, comm3)
 import Data.List (intersperse)
 
 type Proof = LaTeX
 type State = Map String Natural
 
+-- | Evaluates an expression, returning the evaluation result and the proof tree
+-- | generated (as a LaTeX equation)
 evalExpr :: Expr -> State -> (Proof, Natural)
 evalExpr e@(Var id) st 
-  = (druleE e st n (fromString id `in_` (pprintSt st)), n)
+  = (druleExpr e st n (fromString id `in_` (texy st)), n)
   where
     n = fromJust (lookup id st)
 evalExpr e@(Const n) st
-  = (druleE e st n mempty, n)
+  = (druleExpr e st n mempty, n)
 evalExpr e@(e1 :+: e2) st
-  = (druleE e st (n1 + n2) (p1 <> p2), n1 + n2)
+  = (druleExpr e st (n1 + n2) (p1 <> p2), n1 + n2)
   where
     (p1, n1) = evalExpr e1 st
     (p2, n2) = evalExpr e2 st
 evalExpr e@(e1 :*: e2) st
-  = (druleE e st (n1 * n2) (p1 <> p2), n1 * n2)
+  = (druleExpr e st (n1 * n2) (p1 <> p2), n1 * n2)
   where
     (p1, n1) = evalExpr e1 st
     (p2, n2) = evalExpr e2 st
 
+-- | Evaluates a boolean, returning the evaluation result and the proof tree
+-- | generated (as a LaTeX equation)
 evalBoolean :: Boolean -> State -> (Proof, Bool)
 evalBoolean T st 
-  = (druleB T st True mempty, True)
+  = (druleBoolean T st True mempty, True)
 evalBoolean F st 
-  = (druleB F st False mempty, False)
+  = (druleBoolean F st False mempty, False)
 evalBoolean b@(b1 :&: b2) st 
-  = (druleB b st (b1' && b2') (p1 <> p2), b1' && b2')
+  = (druleBoolean b st (b1' && b2') (p1 <> p2), b1' && b2')
   where
     (p1, b1') = evalBoolean b1 st
     (p2, b2') = evalBoolean b2 st
 evalBoolean b@(b1 :|: b2) st 
-  = (druleB b st (b1' || b2') (p1 <> p2), b1' || b2')
+  = (druleBoolean b st (b1' || b2') (p1 <> p2), b1' || b2')
   where
     (p1, b1') = evalBoolean b1 st
     (p2, b2') = evalBoolean b2 st
 evalBoolean b@(Not b1) st
-  = (druleB b st (not b1') p1, not b1')
+  = (druleBoolean b st (not b1') p1, not b1')
   where
     (p1, b1') = evalBoolean b1 st
 evalBoolean b@(e1 :=: e2) st
-  = (druleB b st (n1 == n2) (p1 <> p2), n1 == n2)
+  = (druleBoolean b st (n1 == n2) (p1 <> p2), n1 == n2)
   where
     (p1, n1) = evalExpr e1 st
     (p2, n2) = evalExpr e2 st
 evalBoolean b@(e1 :<: e2) st
-  = (druleB b st (n1 < n2) (p1 <> p2), n1 < n2)
+  = (druleBoolean b st (n1 < n2) (p1 <> p2), n1 < n2)
   where
     (p1, n1) = evalExpr e1 st
     (p2, n2) = evalExpr e2 st
 evalBoolean b@(e1 :>: e2) st
-  = (druleB b st (n1 > n2) (p1 <> p2), n1 > n2)
+  = (druleBoolean b st (n1 > n2) (p1 <> p2), n1 > n2)
   where
     (p1, n1) = evalExpr e1 st
     (p2, n2) = evalExpr e2 st
 
-druleB :: Boolean -> State -> Bool -> Proof -> Proof
-druleB b st b' proof
+druleBoolean :: Boolean -> State -> Bool -> Proof -> Proof
+druleBoolean b st b' proof
   = drule proof (pre <> bsb <> post)
   where
     pre = config b st
     post = config b' st
 
-druleE :: Expr -> State -> Natural -> Proof -> Proof
-druleE e st n proof 
-  = drule proof (pre <> bse <> post)
+druleExpr :: Expr -> State -> Natural -> Proof -> Proof
+druleExpr e st n proof = drule proof (pre <> bse <> post)
   where
     pre = config e st
     post = config n st
 
-config :: Show a => a -> Map String Natural -> LaTeX
-config val st = ang $ (fromString $ show val) 
-             <> (fromString ", ") 
-             <> (pprintSt st)
-
+config :: Texy a => a -> State -> LaTeX
+config val st = ang $ texy val <> fromString ", " <> texy st
 
 -- CUSTOM COMMANDS FROM TEMPLATE --
 
-drule :: LaTeX -> LaTeX -> LaTeX
-drule top bottom = TeXComm "drule" [FixArg "", FixArg top, FixArg bottom]
+drule :: LaTeXC l => l -> l -> l
+drule top bottom = comm3 "drule" "" top bottom
 
-ang :: LaTeX -> LaTeX
-ang content = TeXComm "ang" [FixArg content]
+ang :: LaTeXC l => l -> l
+ang content = comm1 "ang" content
 
-bse :: LaTeX
-bse = TeXCommS "bse"
+bse :: LaTeXC l => l
+bse = comm0 "bse"
 
-bsb :: LaTeX
-bsb = TeXCommS "bsb"
+bsb :: LaTeXC l => l
+bsb = comm0 "bsb"
+
+true :: LaTeXC l => l
+true = comm0 "true"
+
+false :: LaTeXC l => l
+false = comm0 "false"
+
+neg :: LaTeXC l => l
+neg = comm0 "neg"
 
 -- LaTeX PRETTY PRINTERS --
 
-pprintStElem :: (String, Natural) -> LaTeX
-pprintStElem (id, val) 
-  = fromString id <> mapsto <> fromString (show val)
+instance Texy (String, Natural) where
+  texy (id, val) = fromString id <> mapsto <> texy val
 
-pprintSt :: State -> LaTeX
-pprintSt st = autoSquareBrackets (mconcat stElems)
-  where
-    stElems = intersperse "," $ map pprintStElem (toList st)
+instance Texy State where
+  texy st = fromLaTeX $ autoSquareBrackets (mconcat stElems)
+    where
+      stElems = intersperse "," $ map texy (toList st)
+
+instance Texy Expr where
+  texy (Var id) = fromString id
+  texy (Const n) = fromString (show n)
+  texy (e1 :+: e2) = autoParens $ texy e1 <> fromString "+" <> texy e2
+  texy (e1 :*: e2) = autoParens $ texy e1 `times` texy e2
+
+instance Texy Natural where
+  texy n = fromString (show n)
+
+instance Texy Boolean where
+  texy T = true
+  texy F = false
+  texy (b1 :&: b2) = autoParens $ texy b1 `wedge` texy b2
+  texy (b1 :|: b2) = autoParens $ texy b1 `vee` texy b2
+  texy (Not b1) = autoParens $ neg <> texy b1
+  texy (e1 :=: e2) = autoParens $ texy e1 <> fromString "=" <> texy e2
+  texy (e1 :<: e2) = autoParens $ texy e1 <> fromString "<" <> texy e2
+  texy (e1 :>: e2) = autoParens $ texy e1 <> fromString ">" <> texy e2
