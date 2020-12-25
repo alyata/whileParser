@@ -1,17 +1,15 @@
 module Main where
 
-import           Command                (evalCommand, parseCommand)
+import           Command            (evalCommand, parseCommand)
 import           Common
+import           Template           (template)
 
-import           System.Environment     (getArgs)
-import           System.Exit            (ExitCode (ExitFailure), exitWith)
+import           System.Environment (getArgs)
+import           System.Exit        (ExitCode (ExitFailure), exitWith)
 import           Text.LaTeX
-import           Text.LaTeX.Base.Parser (parseLaTeXFile)
 
 main :: IO ()
 main = do
-  parseResult <- parseLaTeXFile "druleTemplate.tex"
-  template <- eitherErrReturn "Failed to parse template" parseResult
   args <- getArgs
   progStr <- readFile $ args !! 0
   let p = parseCommand progStr

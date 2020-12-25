@@ -1,7 +1,18 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Template where
 
+import           Data.FileEmbed         (embedStringFile, makeRelativeToProject)
 import           Text.LaTeX
-import           Text.LaTeX.Base.Class (LaTeXC, comm0, comm1, comm2, comm3)
+import           Text.LaTeX.Base.Class  (LaTeXC, comm0, comm1, comm2, comm3)
+import           Text.LaTeX.Base.Parser (parseLaTeX)
+
+template :: LaTeX
+template = case parseLaTeX tstr of
+             Right t -> t
+             Left _  -> undefined -- this should never happen anyway
+  where
+    tstr = $(makeRelativeToProject "src/druleTemplate.tex" >>= embedStringFile)
 
 config :: (Texy a, Texy b) => a -> b -> LaTeX
 config val st = ang $ texy val <> fromString ", " <> texy st

@@ -29,7 +29,9 @@ default-extensions:
 library:
   source-dirs: src
   ghc-options:
-    - -Wall
+  - -Wall
+  dependencies:
+  - file-embed
 
 executables:
   whileParser:

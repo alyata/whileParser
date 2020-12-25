@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 22da47d11cb26b40c551670507ac05e4d92cd3c1d9961fc9e3a281b99bc06596
+-- hash: 5dcb8a69cc68e035b007b75de3d1ca0f861d3e51e2ab412253484c15ec1f9a7f
 
 name:           whileParser
 version:        0.1.0.0
@@ -30,7 +30,7 @@ library
       Command
       Common
       Expr
-      Latex
+      Template
   other-modules:
       Paths_whileParser
   hs-source-dirs:
@@ -41,6 +41,7 @@ library
       HaTeX
     , base >=4.7 && <5
     , containers
+    , file-embed
     , parsec
   default-language: Haskell2010
 
