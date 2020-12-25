@@ -1,7 +1,7 @@
-module Latex where
+module Template where
 
 import           Text.LaTeX
-import           Text.LaTeX.Base.Class  (LaTeXC, comm0, comm1, comm2, comm3)
+import           Text.LaTeX.Base.Class (LaTeXC, comm0, comm1, comm2, comm3)
 
 config :: (Texy a, Texy b) => a -> b -> LaTeX
 config val st = ang $ texy val <> fromString ", " <> texy st

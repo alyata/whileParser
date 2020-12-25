@@ -1,14 +1,14 @@
 module Boolean where
 
 import           Common
-import           Latex
-import           Expr                (Expr, expr, evalExpr)
+import           Expr                (Expr, evalExpr, expr)
+import           Template
 
 import           Control.Applicative ((<**>))
+import           Prelude             hiding (negate)
 import           Text.LaTeX          hiding (between)
 import           Text.Parsec         (ParseError, Parsec, between, chainl1, eof,
                                       parse, spaces, (<?>), (<|>))
-import           Prelude             hiding (negate)
 
 data Boolean
   = T | F

@@ -1,15 +1,15 @@
 module Command where
 
-import           Common
-import Latex
-import           Expr                (Expr, expr, variable, evalExpr)
 import           Boolean             (Boolean, boolean, evalBoolean)
+import           Common
+import           Expr                (Expr, evalExpr, expr, variable)
+import           Template
 
 import           Control.Applicative ((<**>))
+import           Data.Map            (insert)
 import           Text.LaTeX          hiding (between)
 import           Text.Parsec         (ParseError, Parsec, between, chainr1, eof,
                                       parse, spaces, (<?>), (<|>))
-import           Data.Map               (insert)
 
 data Command =
   String ::=: Expr | If Boolean Command Command |
@@ -17,7 +17,7 @@ data Command =
   deriving Show
 
 instance Texy Command where
-  texy (var ::=: e)  = fromString var <> ":=" <> texy e
+  texy (var ::=: e) = fromString var <> ":=" <> texy e
   texy (If b c1 c2) = ifthen (texy b) (texy c1) (texy c2)
   texy (c1 ::: c2)  = texy c1 <> ";" <> texy c2
   texy Skip         = texttt "skip"

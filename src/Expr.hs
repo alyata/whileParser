@@ -1,7 +1,7 @@
 module Expr where
 
 import           Common
-import           Latex
+import           Template
 
 import           Control.Applicative (liftA2)
 import           Data.Map            (lookup)
@@ -43,7 +43,7 @@ z :: Expr
 z = Var "z"
 
 instance Texy Expr where
-  texy (Var var)    = fromString var
+  texy (Var var)   = fromString var
   texy (Const n)   = fromString (show n)
   texy (e1 :+: e2) = autoParens $ texy e1 <> fromString "+" <> texy e2
   texy (e1 :*: e2) = autoParens $ texy e1 `times` texy e2

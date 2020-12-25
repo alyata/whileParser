@@ -3,11 +3,11 @@
 
 module Common where
 
-import           Text.Parsec (Parsec, spaces, string, try)
+import           Data.List             (intersperse)
+import           Data.Map              (Map, toList)
 import           Text.LaTeX
-import           Data.Map               (Map, toList)
-import           Text.LaTeX.Base.Class  (fromLaTeX)
-import           Data.List              (intersperse)
+import           Text.LaTeX.Base.Class (fromLaTeX)
+import           Text.Parsec           (Parsec, spaces, string, try)
 
 type Proof = LaTeX
 newtype Mapping = Mapping (String, Integer)

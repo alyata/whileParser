@@ -1,12 +1,12 @@
 module Main where
 
-import Common
-import Command (parseCommand, evalCommand)
+import           Command                (evalCommand, parseCommand)
+import           Common
 
-import Text.LaTeX
-import Text.LaTeX.Base.Parser (parseLaTeXFile)
-import System.Environment (getArgs)
-import System.Exit (ExitCode(ExitFailure), exitWith)
+import           System.Environment     (getArgs)
+import           System.Exit            (ExitCode (ExitFailure), exitWith)
+import           Text.LaTeX
+import           Text.LaTeX.Base.Parser (parseLaTeXFile)
 
 main :: IO ()
 main = do
@@ -21,5 +21,5 @@ main = do
   putStrLn "success!"
 
 eitherErrReturn :: String -> Either a b -> IO b
-eitherErrReturn msg 
+eitherErrReturn msg
   = either (\_ -> putStrLn msg >> exitWith (ExitFailure 1)) return
