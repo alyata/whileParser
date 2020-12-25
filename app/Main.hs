@@ -1,16 +1,12 @@
 module Main where
 
-import Expr (Expr(..), x)
-import Boolean (Boolean(..))
-import Command (Command(..), parseCommand)
-import Latex (evalExpr, evalBoolean, evalCommand)
-import Data.Map
+import Common
+import Command (parseCommand, evalCommand)
+
 import Text.LaTeX
-import Text.LaTeX.Base.Render (renderFile)
 import Text.LaTeX.Base.Parser (parseLaTeXFile)
 import System.Environment (getArgs)
 import System.Exit (ExitCode(ExitFailure), exitWith)
-import Data.Either (fromRight)
 
 main :: IO ()
 main = do
@@ -20,10 +16,10 @@ main = do
   progStr <- readFile $ args !! 0
   let p = parseCommand progStr
   prog <- eitherErrReturn (show p) (parseCommand progStr)
-  let (proof, _) = evalCommand prog mempty
+  let (proof, _) = evalCommand prog (State mempty)
   renderFile "out.tex" $ template <> document (math proof)
   putStrLn "success!"
 
 eitherErrReturn :: String -> Either a b -> IO b
 eitherErrReturn msg 
-  = either (\err -> putStrLn msg >> exitWith (ExitFailure 1)) return
+  = either (\_ -> putStrLn msg >> exitWith (ExitFailure 1)) return

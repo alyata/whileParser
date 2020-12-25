@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 49d82e632aff4e25a039fef88ab3b2bb6f1b735cad38f73dec7221cd29aa8d9c
+-- hash: 22da47d11cb26b40c551670507ac05e4d92cd3c1d9961fc9e3a281b99bc06596
 
 name:           whileParser
 version:        0.1.0.0
@@ -35,6 +35,8 @@ library
       Paths_whileParser
   hs-source-dirs:
       src
+  default-extensions: OverloadedStrings
+  ghc-options: -Wall
   build-depends:
       HaTeX
     , base >=4.7 && <5
@@ -48,7 +50,8 @@ executable whileParser
       Paths_whileParser
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  default-extensions: OverloadedStrings
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HaTeX
     , base >=4.7 && <5
@@ -66,6 +69,7 @@ test-suite whileParser-test
       Paths_whileParser
   hs-source-dirs:
       test
+  default-extensions: OverloadedStrings
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HUnit

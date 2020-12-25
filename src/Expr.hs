@@ -1,18 +1,20 @@
 module Expr where
 
-import           Common              (lexeme, lexemeMatch)
+import           Common
+import           Latex
 
 import           Control.Applicative (liftA2)
-import           Data.Function       ((&))
-import           Numeric.Natural
+import           Data.Map            (lookup)
+import           Data.Maybe          (fromJust)
+import           Prelude             hiding (lookup)
+import           Text.LaTeX          hiding (between)
 import           Text.Parsec         (ParseError, Parsec, alphaNum, between,
                                       chainl1, digit, eof, letter, many, many1,
                                       parse, spaces, (<?>), (<|>))
-import           Text.Read           (read)
 
 data Expr
   = Var String
-  | Const Natural
+  | Const Integer
   | Expr :*: Expr
   | Expr :+: Expr
     deriving Eq
@@ -27,15 +29,24 @@ instance Show Expr where
 instance Num Expr where
   (+) = (:+:)
   (*) = (:*:)
-  fromInteger x = Const (fromInteger x)
+  fromInteger n = Const (fromInteger n)
   -- do not use these operations
   abs = undefined
   signum = undefined
   negate = undefined
 
+x :: Expr
 x = Var "x"
+y :: Expr
 y = Var "y"
+z :: Expr
 z = Var "z"
+
+instance Texy Expr where
+  texy (Var var)    = fromString var
+  texy (Const n)   = fromString (show n)
+  texy (e1 :+: e2) = autoParens $ texy e1 <> fromString "+" <> texy e2
+  texy (e1 :*: e2) = autoParens $ texy e1 `times` texy e2
 
 -- |The 'variable' parser parses tokens consisting purely of alphanumeric
 -- |letters to be a variable, except the first character has to be alphabetical.
@@ -44,7 +55,7 @@ variable = lexeme (liftA2 (:) letter (many alphaNum)) <?> "variable"
 
 -- |The 'number' parser parses tokens consisting purely of digits 0-9 to be a
 -- |natural number constant.
-number :: Parsec String st Natural
+number :: Parsec String st Integer
 number = read <$> lexeme (many1 digit) <?> "number"
 
 -- |The 'atom' parser constructs parses an atomic expression, which may be a
@@ -105,3 +116,26 @@ expr = precedence [ LeftOp [(:*:) <$ lexemeMatch "*"]
 
 parseExpr :: String -> Either ParseError Expr
 parseExpr s = parse (spaces *> expr <* eof) "" s
+
+-- | Evaluates an expression, returning the evaluation result and the proof tree
+-- | generated (as a LaTeX equation)
+evalExpr :: Expr -> State -> (Proof, Integer)
+evalExpr e@(Var var) st = (druleExpr e st n proof, n)
+  where
+    n = fromJust $ lookup var (getMap st)
+    proof = fromString var `in_` (texy st)
+evalExpr e@(Const n) st = (druleExpr e st n mempty, n)
+evalExpr e@(e1 :+: e2) st = (druleExpr e st (n1 + n2) (p1 <> p2), n1 + n2)
+  where
+    (p1, n1) = evalExpr e1 st
+    (p2, n2) = evalExpr e2 st
+evalExpr e@(e1 :*: e2) st = (druleExpr e st (n1 * n2) (p1 <> p2), n1 * n2)
+  where
+    (p1, n1) = evalExpr e1 st
+    (p2, n2) = evalExpr e2 st
+
+druleExpr :: Expr -> State -> Integer -> Proof -> Proof
+druleExpr e st n proof = drule proof (pre <> bse <> post)
+  where
+    pre = config e st
+    post = config n st

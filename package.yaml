@@ -23,14 +23,20 @@ dependencies:
 - containers
 - HaTeX
 
+default-extensions:
+- OverloadedStrings
+
 library:
   source-dirs: src
+  ghc-options:
+    - -Wall
 
 executables:
   whileParser:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
+    - -Wall
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
